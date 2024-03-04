@@ -31,10 +31,14 @@ class ArticlesController extends AbstractController
 
     // ici je crée une route pour un article solo que je recuperai par son id.
     #[Route('/article/{id}', name: 'app_article_by_id')]
-    public function getArticleById(): Response
+
+    public function getArticleById(EntityManagerInterface $entityManager, int $id): Response
     {
+
+        // pour recuperer le parametre id en url, j'ai juste a le déclarer en argument de sa méthode
+        $article = $entityManager->getRepository(Article::class)->find($id);
         return $this->render('articles/show_article.html.twig', [
-            'controller_name' => 'ArticlesController',
+            'article' => $article
         ]);
     }
 }
