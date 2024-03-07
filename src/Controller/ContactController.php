@@ -49,7 +49,7 @@ class ContactController extends AbstractController
 
         return $this->render('contact/index.html.twig', [
             'contactForm' => $form,
-            'errors' => !isset($errors) ? NULL : $errors
+            'errors' => !isset($errors) ? NULL : $errors // si j'ai pas d'erreur n'affiche rien sinon affiche errors
         ]);
     }
 }
