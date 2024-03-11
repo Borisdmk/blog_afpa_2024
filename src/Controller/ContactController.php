@@ -41,15 +41,16 @@ class ContactController extends AbstractController
 
                 // rediriger vers une autre page
                 // return $this->redirectToRoute(/* ... */);
-            } else {
-                $errors = $validator->validate($contact);
             }
+             //else {
+            //     $errors = $validator->validate($contact);
+            // }
 
         }
 
         return $this->render('contact/index.html.twig', [
             'contactForm' => $form,
-            'errors' => !isset($errors) ? NULL : $errors // si j'ai pas d'erreur n'affiche rien sinon affiche errors
+            'errors' => !isset($errors) ? null : $errors // si j'ai pas d'erreur n'affiche rien sinon affiche errors
         ]);
     }
 }

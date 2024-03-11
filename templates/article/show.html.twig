@@ -5,30 +5,13 @@
 {% block body %}
     <h1>Article</h1>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ article.id }}</td>
-            </tr>
-            <tr>
-                <th>Title</th>
-                <td>{{ article.title }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ article.description }}</td>
-            </tr>
-            <tr>
-                <th>Picture</th>
-                <td>{{ article.picture }}</td>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <td>{{ article.date ? article.date|date('Y-m-d') : '' }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="col-md-10 mx-auto">
+
+    <h1> {{article.title}} </h1>
+
+    <img src="{{asset('build/images/' ~ article.picture )}}" alt="{{article.title}}" title="{{article.title}}">
+
+    <p>
 
     <a href="{{ path('app_article_index') }}">back to list</a>
 
