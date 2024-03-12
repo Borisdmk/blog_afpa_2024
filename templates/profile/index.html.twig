@@ -3,7 +3,15 @@
 {% block title %}Hello ProfileController!{% endblock %}
 
 {% block body %}
+    {{dump(app.user)}}
+    
+    <li> {{app.user.firstname}} </li>
+    <li> {{app.user.name}} </li>
+    <li> {{app.user.adresse}} </li>
+    <li> {{app.user.codepostal}} </li>
+    <li> {{app.user.phonenumber}} </li>
+    <li> {{app.user.email}} </li>
 
-    {{(app.user.email)}}
+{# <a href={{path("app_forgot_password_request")}} class="btn btn-lg btn-danger" >Mot de passe oublié</a> #}
 
 {% endblock %}

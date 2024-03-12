@@ -1,11 +1,13 @@
 @import "~bootstrap/scss/bootstrap";
 
-* {
-    color: black !important;
-}
 
 a {
     text-decoration: none;
+    color: black !important;
+}
+
+body {
+    background-color: lightblue;
 }
 
 
