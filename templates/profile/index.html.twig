@@ -1,8 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Profil de l'utilisateur!{% endblock %}
+{% block title %}Profil de l'utilisateur!
+{% endblock %}
 
 {% block body %}
+{% include 'flash.html.twig' %}
+{# avoir des infos sur le user connecte #}
 	{# {{dump(app.user)}} #}
 
 	<div class="container mt-5">
@@ -23,6 +26,10 @@
 							{{ app.user.email }}</p>
 						<p class="card-text">Numéro de téléphone :
 							{{ app.user.phonenumber }}</p>
+						<a href="{{ path('app_profile_edit')}}"class="btn btn-warning"> Modifier information </a>
+						<a href="{{ path('app_profile_password_edit')}}" class="btn btn-danger"> Modifier mot de passe </a>
+						<a href="" class="text-light btn btn-dark"> supprimer son compte </a>
+						
 					</div>
 				</div>
 			</div>
