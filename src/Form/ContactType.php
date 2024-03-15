@@ -9,7 +9,9 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ContactType extends AbstractType
@@ -32,6 +34,12 @@ class ContactType extends AbstractType
             ->add('name', TextType::class, [
                 'label'=> 'Nom',
                 'attr' => ['placeholder' => 'Votre nom'],
+                'row_attr' => ['class' => 'col-md-6', 'id' => '...'],
+            ])
+
+            ->add('email', EmailType::class, [
+                'label'=> 'Email',
+                'attr' => ['placeholder' => 'Votre email'],
                 'row_attr' => ['class' => 'col-md-6', 'id' => '...'],
             ])
 
