@@ -1,0 +1,12 @@
+	{{ form_start(commentForm, { 'attr': {'class': 'row' } }) }}
+
+    {{ form_row(commentForm.comment) }}
+    {{ form_row(commentForm._token) }}
+
+    <button type="submit" class="btn btn-succes mt-3"> Ajouter un commentaire </button>
+
+
+	{{ form_end(commentForm, {render_rest: false}) }}
+    {# render_rest false fait en sorte que les champs non écrits dans cette page ne s'afficheront pas dans ma page modify profile même si UserType a d'autres champs #}
+    {# affiche pas le reste des autres champs dans mon formulaire #}
+

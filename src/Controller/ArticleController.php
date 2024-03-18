@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\Comments;
 use App\Form\ArticleType;
+use App\Form\CommentsType;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,11 +49,33 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_article_show', methods: ['GET'])]
-    public function show(Article $article): Response
+    #[Route('/{id}', name: 'app_article_show', methods: ['GET', 'POST'])]
+    public function show(Article $article, Request $request, EntityManagerInterface $entityManager): Response
     {
+        $comment = new Comments;
+        $form = $this->createForm(CommentsType::class, $comment);
+        $form->handleRequest($request);
+
+        if($form->isSubmitted() && $form->isValid()) {
+            $comment->setIdUser($this->getUser());
+            $comment->setIdArticle($article);
+            $comment->setDate(new \DateTime);
+            $comment->setIsVerified(false);
+            
+            $entityManager->persist($comment);
+            $entityManager->flush();
+
+
+            $this->addFlash(
+                'success',
+                'Votre commentaire a bien ete ajouté'
+            );
+
+        }
+
         return $this->render('article/show.html.twig', [
             'article' => $article,
+            'commentForm' => $form
         ]);
     }
 
@@ -77,7 +101,7 @@ class ArticleController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_article_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'app_article_delete', methods: ['POST'])]
     public function delete(Request $request, Article $article, EntityManagerInterface $entityManager): Response
     {
         if ($this->isCsrfTokenValid('delete'.$article->getId(), $request->request->get('_token'))) {
@@ -101,5 +125,7 @@ class ArticleController extends AbstractController
             'articles' => $articles,
         ]);
     }
+
+    
 
 }

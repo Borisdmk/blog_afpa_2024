@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Article;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use phpDocumentor\Reflection\DocBlock\Description;
 
 /**
  * @extends ServiceEntityRepository<Article>
@@ -45,4 +46,18 @@ class ArticleRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+
+     // pour l'input type search, une requête SQL classique de Symfony ne conviendra pas.
+    // la sélection des articles dépendra du mot clé entré dans Search (donc LIKE %motclé%)
+    public function findArticleBySearch($search) : array {
+
+        return $this->createQueryBuilder('a')
+
+            ->andWhere('a.description LIKE :search')
+            ->setParameter('search', "%" . $search . "%")
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }
