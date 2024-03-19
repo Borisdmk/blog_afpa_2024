@@ -7,11 +7,14 @@ use App\Entity\Comments;
 use App\Form\ArticleType;
 use App\Form\CommentsType;
 use App\Repository\ArticleRepository;
+use App\Service\ImageService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/article')]
 class ArticleController extends AbstractController
@@ -24,14 +27,20 @@ class ArticleController extends AbstractController
         ]);
     }
 
+
+
     #[Route('/new', name: 'app_article_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, ImageService $imageService): Response
     {
+
         $article = new Article();
         $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            $fileName =$imageService->copyImage("picture", $this->getParameter("article_picture_directory") ,$form);
+            $article->setPicture($fileName);
             $entityManager->persist($article);
             $entityManager->flush();
 
@@ -48,6 +57,8 @@ class ArticleController extends AbstractController
             'form' => $form,
         ]);
     }
+
+    
 
     #[Route('/{id}', name: 'app_article_show', methods: ['GET', 'POST'])]
     public function show(Article $article, Request $request, EntityManagerInterface $entityManager): Response
@@ -80,21 +91,32 @@ class ArticleController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_article_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Article $article, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Article $article, EntityManagerInterface $entityManager, ImageService $imageService): Response
     {
+         // Crée un formulaire en utilisant ArticleType pour l'article spécifié
         $form = $this->createForm(ArticleType::class, $article);
+        // Gère la requête HTTP
         $form->handleRequest($request);
 
+        // Vérifie si le formulaire a été soumis et est valide
         if ($form->isSubmitted() && $form->isValid()) {
+            // Copie l'image et récupère le nom du nouveau fichier
+            $fileName = $imageService->copyImage("picture", $this->getParameter("article_picture_directory") ,$form);
+            // Met à jour le nom de l'image de l'article
+            $article->setPicture($fileName);
+            // Persiste les changements dans la base de données
             $entityManager->flush();
+            // Ajoute un message flash pour informer de la réussite de la modification
             $this->addFlash(
                 'success',
-                'Votre article a bien été ajouté'
+                'Votre article a bien été modifié'
             );
 
+            // Redirige vers la page d'index des articles après la modification
             return $this->redirectToRoute('app_article_index', [], Response::HTTP_SEE_OTHER);
         }
 
+         // Rend la vue de modification d'article avec le formulaire et les détails de l'article
         return $this->render('article/edit.html.twig', [
             'article' => $article,
             'form' => $form,

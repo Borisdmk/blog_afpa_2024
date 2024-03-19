@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class ProfileController extends AbstractController
 {
@@ -50,6 +51,34 @@ class ProfileController extends AbstractController
             "profileForm" => $form,
         ]);
     }
+
+
+    #[Route('/profile/delete', name: 'app_profile_delete')]
+public function delete(Request $request, EntityManagerInterface $entityManager, TokenStorageInterface $token): Response
+{
+    // Récupère l'utilisateur connecté
+    $user = $this->getUser();
+
+    
+ 
+        // Supprime l'utilisateur de la base de données
+        $entityManager->remove($user);
+        $entityManager->flush();
+
+        // Déconnecte automatiquement l'utilisateur après la suppression
+        $token->setToken(null);
+
+        $this->addFlash(
+            'success',
+            'Votre compte a bien été supprimé.'
+        );
+
+        
+    
+
+    // En cas de méthode de requête incorrecte ou accès direct à la route, redirige vers une page d'erreur ou une autre page appropriée.
+    return $this->redirectToRoute('app_home', [], Response::HTTP_SEE_OTHER);
+}
 
 
 
