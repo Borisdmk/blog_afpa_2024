@@ -23,7 +23,21 @@
 
 		<div class="col-8 border">
 
-			{% for article in articles %}
+		{# ASYCHROME je veux que avec le select je puisse faire un choix sans recharger la page
+		javascript qui communique avec php en passant par asychrome #}
+
+			<form>
+				<select class="form-select" id="filter" name="filter">
+					<option value="ASC"> Par date croissant </option>
+					<option value="DESC"> Par date décroissant </option>
+				</select>
+			</form>
+
+
+		{% for article in articles %}
+
+			<div class="col-md-12" id="list-articles">
+			
 
 				<a href="{{ path('app_article_show', {id : article.id })}}">
 					<div class="article d-flex p-3">
@@ -44,7 +58,8 @@
 						</div>
 					</div>
 				</a>
-			{% endfor %}
+		{% endfor %}
+		</div>
 
 			<div class="navigation">
 				{{ knp_pagination_render(articles) }}
