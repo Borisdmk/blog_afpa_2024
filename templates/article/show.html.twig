@@ -43,7 +43,15 @@
 
     {% endif %} 
 
-    
+
+
+    {% for comment in article.comments %}
+
+        <p> {{comment.comment}} </p>
+        {# erreur a user, car c'est un objet, date aussi #}
+        <i> {{comment.idUser}} - {{comment.date | date("d-m-Y")}} </p>
+
+    {% endfor %}
 
 
 

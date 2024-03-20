@@ -1,6 +1,14 @@
 {% form_theme form 'bootstrap_5_layout.html.twig' %}
 
 {{ form_start(form) }}
-    {{ form_widget(form) }}
+{# je met cette ligne en commentaire donc je vais devoir ecrire tout les champs a la main #}
+    {# {{ form_widget(form) }} #}
+    {{ form_row(form.title) }}
+    {{ form_row(form.category) }}
+    {{ form_row(form.description) }}
+    {{ form_row(form.picture) }}
+    {% if article.picture %}
+        <img src="{{ asset('uploads/articles/' ~ article.picture) }}" alt="Image actuelle" style="max-width: 200px; max-height:200px"
+        {% endif %}
     <button class="btn btn-success">{{ button_label|default('Save') }}</button>
 {{ form_end(form) }}
