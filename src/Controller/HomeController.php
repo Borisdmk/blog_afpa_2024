@@ -35,7 +35,7 @@ class HomeController extends AbstractController
     }
 
 
-    #[Route('/{filter}', name: 'app_home_filter')]
+    #[Route('/filter/{filter}', name: 'app_home_filter')]
     public function getArticlesByFilter(ArticleRepository $articleRepository, CategoryRepository $categoryRepository, PaginatorInterface $paginator, Request $request, string $filter): JsonResponse
     {
         $articleData = [];

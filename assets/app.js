@@ -31,7 +31,7 @@ $(document).ready(function () {
         async function fetchData(filter) {
             try {
                 // Construit l'URL avec le filtre
-                const url = `/${filter}`;
+                const url = `/filter/${filter}`;
 
                 // Exécute la requête asynchrone
                 //await il faut attendre la reponse du serveur, async function. Si await = async

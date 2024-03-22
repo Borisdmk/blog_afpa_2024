@@ -4,13 +4,17 @@
 {# je met cette ligne en commentaire donc je vais devoir ecrire tout les champs a la main #}
     {# {{ form_widget(form) }} #}
     {{ form_row(form.title) }}
-    {{ form_row(form.category) }}
     {{ form_row(form.description) }}
+    {{ form_row(form.price) }}
+    {{ form_row(form.stock) }}
     {{ form_row(form.picture) }}
-    {% if article.picture %}
+
+    {% if product.picture %}
     <div>
-        <img src="{{ asset('uploads/articles/' ~ article.picture) }}" alt="Image actuelle" style="max-width: 200px; max-height:200px">
+        <img src="{{ asset('uploads/articles/' ~ product.picture) }}" alt="Image actuelle" style="max-width: 200px; max-height:200px">
     </div>
+    
         {% endif %}
+
     <button class="btn btn-success mt-2">{{ button_label|default('Save') }}</button>
 {{ form_end(form) }}
