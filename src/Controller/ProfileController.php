@@ -120,6 +120,8 @@ public function delete(Request $request, EntityManagerInterface $entityManager, 
             'passwordForm' => $form,
         ]);
     }
+
+    
 }
 
 

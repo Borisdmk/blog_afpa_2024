@@ -21,10 +21,10 @@ class Comments
     private ?\DateTimeInterface $date = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
-    private ?article $id_article = null;
+    private ?Article $id_article = null;
 
     #[ORM\ManyToOne(inversedBy: 'comments')]
-    private ?user $id_user = null;
+    private ?User $id_user = null;
 
     #[ORM\Column]
     private ?bool $is_verified = null;

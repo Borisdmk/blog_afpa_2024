@@ -20,14 +20,33 @@ class CartController extends AbstractController
 
 
     
+    // #[Route('/cart', name: 'app_cart_index')]
+    // public function index(): Response
+    // {
+    //     return $this->render('cart/index.html.twig', [
+    //         'cartItems' => [],
+    //         'cartTotal' => 100,
+    //     ]);
+    // }
+
+
     #[Route('/cart', name: 'app_cart_index')]
-    public function index(): Response
-    {
-        return $this->render('cart/index.html.twig', [
-            'cartItems' => [],
-            'cartTotal' => 100,
-        ]);
+public function index(Request $request): Response
+{
+    $session = $request->getSession();
+    $cartItems = $session->get('cart', []);
+
+    // Calculer le montant total du panier
+    $cartTotal = 0;
+    foreach ($cartItems['price'] as $price) {
+        $cartTotal += $price;
     }
+
+    return $this->render('cart/index.html.twig', [
+        'cartItems' => $cartItems,
+        'cartTotal' => $cartTotal,
+    ]);
+}
 
     #[Route('/cart/{idProduct}', name: 'app_cart_add')]
     public function addProduct(Request $request, ProductRepository $productRepository, int $idProduct): Response

@@ -15,11 +15,11 @@ class OrderDetails
 
     #[ORM\ManyToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    private ?order $id_order = null;
+    private ?Order $id_order = null;
 
     #[ORM\ManyToOne(inversedBy: 'orderDetails')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?product $product = null;
+    private ?Product $product = null;
 
     #[ORM\Column(length: 255)]
     private ?string $Quantity = null;

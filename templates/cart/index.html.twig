@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello CartController!{% endblock %}
+{% block title %}Votre panier!{% endblock %}
 
 {% block body %}
 <style>
@@ -44,13 +44,16 @@ th {
 
 <div class="cart-container">
     <h2>Votre panier</h2>
+    {% if cartItems is not empty %}
     <table>
         <thead>
             <tr>
                 <th>Article</th>
-                <th>Quantité</th>
-                <th>Prix Unitaire</th>
-                <th>Total</th>
+                <th>Titre</th>
+                <th>description</th>
+                <th>image</th>
+                <th>Prix</th>
+                <th>Stock</th>
             </tr>
         </thead>
         <tbody>
@@ -74,6 +77,9 @@ th {
     <form action="" method="POST">
         <input type="submit" name="payer" value="Pay" class="btn btn-outline-secondary">
     </form>
+     {% else %}
+        <p>Votre panier est vide.</p>
+    {% endif %}
 </div>
 
 {% endblock %}
