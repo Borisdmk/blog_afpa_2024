@@ -14,7 +14,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Validator\Constraints\Email as ConstraintsEmail;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ContactController extends AbstractController
@@ -46,7 +45,7 @@ class ContactController extends AbstractController
 
                 $email = (new TemplatedEmail())
                 ->from($this->getParameter('app.mailAddress'))
-                ->to('you@example.com')
+                ->to($this->getParameter('app.mailAddress'))
                 ->cc($contact->getEmail())
                 //->bcc('bvv@exemple.com')
                 //replyTo('fabien@exemple.com)
