@@ -11,52 +11,67 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\Security;
 
 class PaymentController extends AbstractController
 {
     #[Route('/payment', name: 'pay')]
-    public function index(Request $request, ProductRepository $productRepository, EntityManagerInterface $entityManager, OrderRepository $orderRepository): Response
-    {
+    public function index(
+        Request $request,
+        ProductRepository $productRepository,
+        EntityManagerInterface $entityManager,
+        OrderRepository $orderRepository,
+        Security $security
+    ): Response {
 
-        // je récupere la session cart;
-        $cart = $request->getSession()->get('cart');
-        
-        // je crée une commande:
-        $order = new Order;
+        if ($security->isGranted('IS_AUTHENTICATED_FULLY')) {
 
-        $cartTotal = 0;
+            // je récupère la session cart
+            $cart = $request->getSession()->get('cart');
+            // je créé une commande
+            $order = new Order;
+            $cartTotal = 0;
 
-        for($i = 0; $i < count($cart["id"]); $i++) {
-            $cartTotal += (float) $cart["price"][$i] * $cart["stock"][$i];
-        }
+            for ($i = 0; $i < count($cart["id"]); $i++) {
+                $cartTotal += (float) $cart["price"][$i] * $cart["stock"][$i];
+            }
 
+            $order->setTotal($cartTotal);
+            $order->setStatus('En cours');
+            $order->setUser($this->getUser());
+            $order->setDate(new \DateTime);
 
-        // je set le montant 
-        $order->setTotal($cartTotal);
-
-        // je set le statut
-        $order->setStatus('en cours');
-
-        // je set le user
-        $order->setUser($this->getUser());
-
-        // je set la date
-        $order->setDate(new \DateTime);
-
-
-        // pour chaque élément de mon panier je crée un détail de commande
-        for($i = 0; $i < count($cart["id"]); $i++) {
-            $orderDetails= new OrderDetails;
-            $orderDetails->setIdOrder($orderRepository->findOnBy([], ['id' => 'DESC']));
-            $orderDetails->setProduct($productRepository->find($cart["id"][$i]));
-            $orderDetails->setQuantity($cart["id"][$i]);
-
-            $entityManager->persist($orderDetails);
+            $entityManager->persist($order);
             $entityManager->flush();
+
+            // pour chaque élément de mon panier je créé un détail de commande
+            for ($i = 0; $i < count($cart["id"]); $i++) {
+                $orderDetails = new OrderDetails;
+                $orderDetails->setIdOrder($orderRepository->findOneBy([], ['id' => 'DESC']));
+                $orderDetails->setProduct($productRepository->find($cart["id"][$i]));
+                $orderDetails->setQuantity($cart["id"][$i]);
+
+                $entityManager->persist($orderDetails);
+                $entityManager->flush();
+
+                // on génera le PDF
+                // on l'enverra par mail la facture
+                // on affichera une page de succès
+
+                return $this->render('payment/index.html.twig', [
+                    'controller_name' => 'PaymentController',
+                ]);
+
+            }
         }
 
-        return $this->render('payment/index.html.twig', [
-            'controller_name' => 'PaymentController',
-        ]);
+        $session = $request->getSession();
+        $session->set('url_retour', $request->getUri());
+
+        // si pas connecté
+        return $this->redirectToRoute('app_login');
+
+
+
     }
 }

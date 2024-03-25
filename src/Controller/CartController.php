@@ -19,36 +19,31 @@ class CartController extends AbstractController
 {
 
 
-    
-    // #[Route('/cart', name: 'app_cart_index')]
-    // public function index(): Response
-    // {
-    //     return $this->render('cart/index.html.twig', [
-    //         'cartItems' => [],
-    //         'cartTotal' => 100,
-    //     ]);
-    // }
 
+    #[Route('/cart', name: 'app_cart')]
+    public function index(Request $request): Response
+    {
 
-    #[Route('/cart', name: 'app_cart_index')]
-public function index(Request $request): Response
-{
-    $session = $request->getSession();
-    $cartItems = $session->get('cart', []);
+        $session = $request->getSession();
 
-    // Calculer le montant total du panier
-    $cartTotal = 0;
-    foreach ($cartItems['price'] as $price) {
-        $cartTotal += $price;
+        $carTotal = 0;
+
+        if(!is_null($session->get('cart')) && count($session->get('cart')) > 0) {
+            for($i = 0; $i < count($session->get('cart')["id"]); $i++) {
+                $carTotal += (float) $session->get('cart')["price"][$i] * $session->get('cart')["stock"][$i];
+            }
+        }   
+
+        return $this->render('cart/index.html.twig', [
+            'cartItems' => $session->get('cart'),
+            'cartTotal' => $carTotal,
+        ]);
     }
+    
+   
 
-    return $this->render('cart/index.html.twig', [
-        'cartItems' => $cartItems,
-        'cartTotal' => $cartTotal,
-    ]);
-}
 
-    #[Route('/cart/{idProduct}', name: 'app_cart_add')]
+    #[Route('/cart/{idProduct}', name: 'app_cart_add', methods: ['POST'])]
     public function addProduct(Request $request, ProductRepository $productRepository, int $idProduct): Response
     {
 
@@ -63,8 +58,8 @@ public function index(Request $request): Response
                 "title" => [],
                 "description" => [],
                 "picture" => [],
-                "price" => [],
                 "stock" => [],
+                "price" => [],
             ]);
         }
 
@@ -98,37 +93,23 @@ public function index(Request $request): Response
         ]);
     }
 
+    #[Route('/cart/delete', name: 'app_cart_delete', methods: ['GET'])]
+    public function deleteCart(Request $request): Response
+    {
 
-    /**
-     * @Route("/add-to-cart/{id}", name="add_to_cart")
-     */
+        $session = $request->getSession();
+        $session->set('cart', []);
 
-    //  #[Route('/order/cart', name: 'add_to_cart', methods: ['GET', 'POST'])]
+        return $this->redirectToRoute('app_cart');
 
-    // public function addToCart(Request $request, EntityManagerInterface $entityManager, Product $product): Response
-    // {
-    //     // Créer un nouvel élément de commande (order detail) pour ce produit
-    //     $orderDetail = new OrderDetails();
-    //     $orderDetail->setProduct($product);
-
-    //     // Associer cet élément de commande à l'ordre en cours (simulé ici)
-    //     // Vous devrez adapter cette partie en fonction de votre modèle de données
-    //     $order = $this->getCurrentOrder();
-    //     $order->addOrderDetail($orderDetail);
-
-    //     // Enregistrer les modifications dans la base de données
-    //     $entityManager->persist($order);
-    //     $entityManager->flush();
-
-    //     // Rediriger vers la page du panier ou une autre page
-    //     return $this->redirectToRoute('cart_show');
-    // }
-
-    // // Méthode de simulation pour récupérer l'ordre en cours
-    // private function getCurrentOrder()
-    // {
-    //     // Vous devrez implémenter cette méthode pour récupérer l'ordre en cours
-    //     // pour l'utilisateur actuellement connecté ou pour l'utilisateur anonyme
-    //     // Selon votre cas d'utilisation
-    // }
+    }
 }
+
+    
+
+    
+
+
+
+    
+    
