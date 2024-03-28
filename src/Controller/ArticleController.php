@@ -60,7 +60,7 @@ class ArticleController extends AbstractController
 
     
 
-    #[Route('/{id}', name: 'app_article_show', methods: ['GET', 'POST'])]
+    #[Route('/{id}', name: 'app_article_show', methods: ['GET', 'POST'], requirements:['id' => '\d+'])]
     public function show(Article $article, Request $request, EntityManagerInterface $entityManager): Response
     {
         $comment = new Comments;

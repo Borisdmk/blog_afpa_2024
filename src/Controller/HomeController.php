@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Translation\TranslatableMessage;
 
 class HomeController extends AbstractController
 {
@@ -22,6 +23,7 @@ class HomeController extends AbstractController
     public function index(ArticleRepository $articleRepository, CategoryRepository $categoryRepository, PaginatorInterface $paginator, Request $request): Response
     {
 
+        // $msg_acceuil = new TranslatableMessage('its the message to translate');
         $articles = $paginator->paginate(
             $articleRepository->findAll(), /* query NOT result */
             $request->query->getInt('page', 1), /*page number*/
@@ -29,6 +31,7 @@ class HomeController extends AbstractController
         );
 
         return $this->render('home/index.html.twig', [
+            // 'msg_acceuil' => $msg_acceuil,
             'categories' => $categoryRepository->findAll(),
             'articles' => $articles,
         ]);
