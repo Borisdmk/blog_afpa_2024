@@ -26,50 +26,57 @@ class StripeController extends AbstractController
     public function checkout(Request $request, EntityManagerInterface $entityManager): Response
     {
 
-        // Définir la clé secrète de Stripe
-        // récupérer ma session stripe via ma clé stripe
-        \Stripe\Stripe::setApiKey($this->getParameter('app.stripe_key'));
-
         $productsInSession = $request->getSession()->get('cart');
 
-        dd($productsInSession);
+        if (!empty($productsInSession)) {
 
-        $products = [];
+            // Définir la clé secrète de Stripe
+            // récupérer ma session stripe via ma clé stripe
+            \Stripe\Stripe::setApiKey($this->getParameter('app.stripe_key'));
 
-        // [
-        //     "price" => "",
-        //     "quantity" => 1
-        // ]
+            $products = [];
 
-        // afficher un formulaire de paiement avec une session de paiement stripe
-        $session = \Stripe\Checkout\Session::create([
-            'payment_method_types' => ['card'],
-            'currency' => 'eur',
-            'line_items' => [
-                $products
-            ],
-            'allow_promotion_codes' => true,
-            'customer_email' => "sam@gmail.com",
-            'mode' => 'payment',
-            'success_url' => $this->generateUrl('app_stripe_success', [], UrlGeneratorInterface::ABSOLUTE_URL),
-            'cancel_url' => $this->generateUrl('app_stripe_error', [], UrlGeneratorInterface::ABSOLUTE_URL),
-            // 'client_reference_id' => 1
-        ]);
+            for ($i = 0; $i < count($productsInSession["id"]); $i++) {
+                $products[] = [
+                    "price" => $productsInSession["priceIdStripe"][$i],
+                    "quantity" => $productsInSession["stock"][$i]
+                ];
+            }
+            // dd($products);
+
+            // afficher un formulaire de paiement avec une session de paiement stripe
+            $session = \Stripe\Checkout\Session::create([
+                'payment_method_types' => ['card'],
+                'currency' => 'eur',
+                'line_items' => [
+                    $products
+                ],
+                'allow_promotion_codes' => true,
+                'customer_email' => "sam@gmail.com",
+                'mode' => 'payment',
+                'success_url' => $this->generateUrl('app_stripe_success', [], UrlGeneratorInterface::ABSOLUTE_URL),
+                'cancel_url' => $this->generateUrl('app_stripe_error', [], UrlGeneratorInterface::ABSOLUTE_URL),
+                // 'client_reference_id' => 1
+            ]);
 
 
-        // créer un paiement en bdd
-        // pour stocker les informations liées à la session de paiement stripe
-        $payment = new Payment();
-        $payment->setUser($this->getUser())
-            ->setSessionID($session['id'])
-            ->setPaymentStatus($session['payment_status'])
-            ->setDate(new \DateTime())
-            ->setSuccessPageExpired(false)
-            ->setAmount($session['amount_total'] / 100);
-        $entityManager->persist($payment);
-        $entityManager->flush();
+            // créer un paiement en bdd
+            // pour stocker les informations liées à la session de paiement stripe
+            $payment = new Payment();
+            $payment->setUser($this->getUser())
+                ->setSessionID($session['id'])
+                ->setPaymentStatus($session['payment_status'])
+                ->setDate(new \DateTime())
+                ->setSuccessPageExpired(false)
+                ->setAmount($session['amount_total'] / 100);
+            $entityManager->persist($payment);
+            $entityManager->flush();
 
-        return $this->redirect($session->url, 303);
+            return $this->redirect($session->url, 303);
+
+        } else {
+            return $this->redirectToRoute('app_home');
+        }
 
     }
 
@@ -102,12 +109,12 @@ class StripeController extends AbstractController
             // ca me permet de savoir que le dernier paiement effectué par le user
             // n'est pas encore arrivé sur la page success
             // et que donc je peux créer mes factures et mes commandes
-            if ($lastPayment->getSuccessPageExpired() == false && $session['customer']) {
+            if ($lastPayment->isSuccessPageExpired() == false && $session['payment_status'] == "paid") {
 
                 // Récupération de toutes les informations liés à la session et donc au dernier paiement
-                $subscription = \Stripe\Subscription::retrieve($session['subscription']);
+                $subscription = \Stripe\PaymentIntent::retrieve($session['payment_intent']);
                 // $invoice = \Stripe\Invoice::retrieve($subscription['latest_invoice']);
-                $paymentMethod = \Stripe\PaymentMethod::retrieve($subscription['default_payment_method']);
+                $paymentMethod = \Stripe\PaymentMethod::retrieve($subscription['payment_method']);
 
                 // je mets à jour mon paiement
 
@@ -117,7 +124,7 @@ class StripeController extends AbstractController
                 $lastPayment->setPaymentStatus($session['payment_status'])
                     // ->setCustomerStripeId($session['customer'])
                     // ->setSubscriptionId($session['subscription'])
-                    ->setPaymentMethodId($paymentMethod['id'])
+                    // ->setPaymentMethodId($paymentMethod['id'])
                     ->setSuccessPageExpired(true); // On paramètre ici la valeur true ce qui permettra d'éviter à un utilisateur de retourner sur cette page une deuxième fois.
                 $entityManager->persist($lastPayment);
 
@@ -131,10 +138,10 @@ class StripeController extends AbstractController
                 $cartTotal = 0;
 
                 for ($i = 0; $i < count($cart["id"]); $i++) {
-                    $cartTotal += (float) $cart["price"][$i] * $cart["quantity"][$i];
+                    $cartTotal += (float) $cart["price"][$i] * $cart["stock"][$i];
                 }
 
-                $order->setAmount($cartTotal);
+                $order->setTotal($cartTotal);
                 $order->setStatus('En cours');
                 $order->setUser($this->getUser());
                 $order->setDate(new \DateTime);
@@ -145,7 +152,7 @@ class StripeController extends AbstractController
                 // pour chaque élément de mon panier je créé un détail de commande
                 for ($i = 0; $i < count($cart["id"]); $i++) {
                     $orderDetails = new OrderDetails;
-                    $orderDetails->setOrderNumber($order->getId());
+                    $orderDetails->setIdOrder($order);
                     $orderDetails->setProduct($productRepository->find($cart["id"][$i]));
                     $orderDetails->setQuantity($cart["id"][$i]);
 
@@ -153,42 +160,42 @@ class StripeController extends AbstractController
                     $entityManager->flush();
                 }
 
-                if(!$order->isPdf()) {
+                if (!$order->isPdf()) {
 
                     // on génera le PDF
                     $pdfOptions = new Options();
                     $pdfOptions->set(['defaultFont' => 'Arial', 'enable_remote' => true]);
                     // 2- On crée le pdf avec les options
                     $dompdf = new Dompdf($pdfOptions);
-        
+
                     $invoiceNumber = $order->getId();
-            
+
                     // 3- On prépare le twig qui sera transformée en pdf
                     $html = $this->renderView('invoice/index.html.twig', [
                         'user' => $this->getUser(),
-                        'amount' => $order->getAmount(),
+                        'amount' => $order->getTotal(),
                         'invoiceNumber' => $invoiceNumber,
                         'date' => new \DateTime(),
                         'orderDetails' => $orderDetailsRepository->findBy(['orderNumber' => $order->getId()])
                     ]);
-            
+
                     // 4- On transforme le twig en pdf avec les options de format
                     $dompdf->loadHtml($html);
                     $dompdf->setPaper('A4', 'portrait');
-            
+
                     // 5- On enregistre le pdf dans une variable
                     $dompdf->render();
                     $finalInvoice = $dompdf->output();
-            
+
                     if (!file_exists('uploads/factures')) {
                         mkdir('uploads/factures');
                     }
-        
+
                     $pathInvoice = "./uploads/factures/" . $invoiceNumber . "_" . $this->getUser()->getId() . ".pdf";
                     file_put_contents($pathInvoice, $finalInvoice);
                     // on l'enverra par mail la facture
                     // on affichera une page de succès
-            
+
                     $email = (new TemplatedEmail())
                         ->from($this->getParameter('app.mailAddress'))
                         ->to($this->getUser()->getEmail())
@@ -200,36 +207,31 @@ class StripeController extends AbstractController
                         ->htmlTemplate("invoice/email.html.twig")
                         ->context([
                             'user' => $this->getUser(),
-                            'amount' => $order->getAmount(),
+                            'amount' => $order->getTotal(),
                             'invoiceNumber' => $invoiceNumber,
                             'date' => new \DateTime(),
                             'orderDetails' => $orderDetailsRepository->findBy(['orderNumber' => $order->getId()])
                         ])
                         ->attach($finalInvoice, sprintf('facture-' . $invoiceNumber . 'blog-afpa.pdf', date("Y-m-d")));
-            
+
                     $mailer->send($email);
-            
+
                     $order->setPdf(true);
                     $entityManager->persist($order);
                     $entityManager->flush();
-            
+
                     // vider le panier
                     $session = $request->getSession();
-                    $session->set('cart', []);        
-            
-                    // return $this->render("payment/success.html.twig", [
-                    //     'user' => $this->getUser(),
-                    //     'amount' => $order->getAmount(),
-                    //     'invoiceNumber' => $invoiceNumber,
-                    //     'date' => new \DateTime(),
-                    //     'orderDetails' => $orderDetailsRepository->findBy(['orderNumber' => $order->getId()])
-                    // ]);
+                    $session->set('cart', []);
 
-                    return $this->render('stripe/success.html.twig', [
-                        'invoiceNumber' => $order->getId(),
-                        'paymentMethod' => $paymentMethod['card']['brand'],
+                    return $this->render("stripe/success.html.twig", [
+                        'user' => $this->getUser(),
+                        'amount' => $order->getTotal(),
+                        'invoiceNumber' => $invoiceNumber,
+                        'date' => new \DateTime(),
+                        'orderDetails' => $orderDetailsRepository->findBy(['orderNumber' => $order->getId()])
                     ]);
-        
+
                 }
 
             }
