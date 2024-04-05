@@ -1,7 +1,5 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello PaymentController!{% endblock %}
-
 {% block body %}
 
     <div style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; color: #333;">
@@ -10,7 +8,7 @@
         <p>Merci pour votre achat. Voici les détails de votre commande :</p>
         <ul>
             <li>Numéro de facture : {{ invoiceNumber }}</li>
-            <li>Date : {{ date|date('d-m-y') }}</li>
+            <li>Date : {{ date|date("d-m-Y") }}</li>
             <li>Montant total : {{ amount }} €</li>
         </ul>
         <h3>Produits achetés :</h3>
